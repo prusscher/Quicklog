@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+             xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
+             android:layout_height="wrap_content" android:orientation="vertical" style="@style/DefaultDarkTheme">
+    <TableRow
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" android:layout_weight="1"
+            android:paddingTop="5dp" android:paddingLeft="10dp"
+            android:paddingRight="10dp">
+        <TextView
+                android:id="@+id/technican_field"
+                android:layout_height="wrap_content"
+                android:text="Technician" android:layout_weight="1"
+                android:layout_width="wrap_content" android:textStyle="bold" style="@style/DefaultDarkTheme"/>
+        <TextView
+                android:id="@+id/date_field"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_width="wrap_content" android:text="Date goes here" android:textStyle="italic" style="@style/DefaultDarkTheme"/>
+    </TableRow>
+    <!--<View-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="1dp"-->
+            <!--android:layout_marginLeft="10dp"-->
+            <!--android:layout_marginRight="10dp"-->
+            <!--android:background="#8a8b8c"/>-->
+    <TextView
+            android:text="This is the worklog"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:id="@+id/worklog_field" android:layout_weight="1"
+            android:paddingLeft="10dp" android:paddingBottom="5dp" android:paddingRight="10dp"
+            android:paddingTop="5dp" style="@style/DefaultDarkTheme"/>
+    <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#dbdbdb"/>
+</TableLayout>

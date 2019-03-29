@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto" xmlns:tools="http://schemas.android.com/tools"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent" android:orientation="vertical">
+
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:gravity="right"
+            android:id="@+id/worklog_lookup">
+        <EditText
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:inputType="number"
+                android:ems="10"
+                android:id="@+id/request_input_field"
+                android:layout_marginEnd="8dp"
+                android:layout_marginStart="8dp"
+                android:hint="@string/example_request_format_text" android:textAlignment="center"
+                android:layout_weight="1" android:importantForAutofill="no"/>
+        <Button
+                android:text="@string/request_worklogs_button_text"
+                android:layout_width="80dp"
+                android:layout_height="wrap_content"
+                android:id="@+id/search_worklog_button"
+                android:layout_weight="0"/>
+    </LinearLayout>
+    <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:scrollbarStyle="insideOverlay" android:id="@+id/worklog_scrollview_parent"
+            android:fillViewport="true" android:layout_weight="1">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                      android:orientation="vertical" android:id="@+id/worklog_scrollview" android:divider="#ff9900"
+                      android:dividerPadding="0dp"/>
+    </ScrollView>
+    <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+        <EditText
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:inputType="textPersonName"
+                android:ems="10"
+                android:id="@+id/worklog_input_field" android:layout_weight="1" android:hint="@string/worklog_hint"
+                android:singleLine="false"/>
+        <Button
+                android:text="@string/worklog_submit"
+                android:layout_width="80dp"
+                android:layout_height="match_parent" android:id="@+id/worklog_submit_button" android:layout_weight="0"/>
+    </LinearLayout>
+</LinearLayout>

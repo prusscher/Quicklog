@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">Quicklog</string>
+    <string name="request_worklogs_button_text">Go!</string>
+    <string name="example_request_format_text">123456</string>
+    <string name="action_settings">Settings</string>
+    <string name="api_key_text">SD API Key</string>
+    <string name="sd_url_text">ServiceDesk URL</string>
+    <string name="dialog_api_key_title">Enter the API Key generated through ServiceDesk Plus</string>
+    <string name="dialog_sd_url_title">Enter the url to your ServiceDesk Instance</string>
+    <string name="api_key_example_hint">xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx</string>
+    <string name="sd_url_hint">https://servicedesk.mtu.edu</string>
+    <string name="settings_label">settings</string>
+    <string name="worklog_hint">Worklog here</string>
+    <string name="worklog_submit">Submit</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+</resources>
