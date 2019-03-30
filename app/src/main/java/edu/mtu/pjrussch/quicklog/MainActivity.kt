@@ -5,8 +5,6 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
-import android.widget.Button
-import androidx.preference.PreferenceFragmentCompat
 import edu.mtu.pjrussch.quicklog.API.APIController
 import edu.mtu.pjrussch.quicklog.API.SDPAPI
 import edu.mtu.pjrussch.quicklog.API.ServiceVolley
@@ -17,13 +15,12 @@ import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.*
 import android.content.SharedPreferences
-import android.hardware.input.InputManager
+import android.text.Html
 import android.view.*
+import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.preference.PreferenceManager
-import kotlinx.android.synthetic.main.worklog_list_item.*
-import kotlinx.serialization.json.JSON
 
 
 class MainActivity : AppCompatActivity() {
@@ -34,17 +31,10 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.worklog_lookup)
 
-
         // E6A03771-4A4E-4DE3-95F7-E9DB0D780C36
 
         title = "Quicklog"
         super.setTheme(R.style.DefaultDarkTheme)
-
-        Log.d(LOG_TAG, "Populating scrollview")
-
-        // How to add a viewz.
-//        // Create an inflater for adding worklogs and such
-        val layoutInflater:LayoutInflater = LayoutInflater.from(applicationContext)
 
         // Clear the scrollview
         if (worklog_scrollview.childCount > 0)
@@ -59,72 +49,35 @@ class MainActivity : AppCompatActivity() {
 
         Log.d(LOG_TAG, "Setting onClickListener for Button")
 
+        // Go button to search for a requests worklogs
         search_worklog_button.setOnClickListener{
-
-            val loadingView: View = layoutInflater.inflate(R.layout.worklog_loading_item, worklog_scrollview, false)
-            loadingView.visibility = View.VISIBLE
-            worklog_scrollview.addView(loadingView)
-
-            val apiKey = prefs.getString("api_key", "NO_API_KEY")
-            val path = requestWorklogAllPath(Integer.parseInt(request_input_field.text.toString()), apiKey)
-
-
-            Log.d(LOG_TAG, "Button pressed, requesting worklogs from $path")
-
-            if(apiKey != "NO_API_KEY") {
-                apiController.post(path, JSONObject()) { response ->
-                    queryAndSetWorklogsView(response)
-                }
-            } else {
-
-                val worklogView: View = layoutInflater.inflate(R.layout.worklog_list_item, worklog_scrollview, false)
-
-                worklogView.technican_field.text = "Status:"
-                worklogView.date_field.text = SimpleDateFormat("MM/dd/yyyy hh:mm a").format(Date())
-                worklogView.worklog_field.text = "No API Key set, go to settings and set the API Key from ServiceDesk."
-
-                worklog_scrollview.addView(worklogView)
-            }
+            hideKeyboard()
+            setWorklogInputVisible(false)
+            requestWorklogAndFillList(prefs, apiController)
         }
 
         // Assign the enter key to the same function as the go button
         request_input_field.setOnKeyListener { v, keycode, event ->
            if( event.action == KeyEvent.ACTION_DOWN && keycode == KeyEvent.KEYCODE_ENTER ) {
-
-               val loadingView: View = layoutInflater.inflate(R.layout.worklog_loading_item, worklog_scrollview, false)
-               loadingView.visibility = View.VISIBLE
-               worklog_scrollview.addView(loadingView)
-
-               val apiKey = prefs.getString("api_key", "NO_API_KEY")
-               val path = requestWorklogAllPath(Integer.parseInt(request_input_field.text.toString()), apiKey)
-
-               Log.d(LOG_TAG, "Button pressed, requesting worklogs from $path")
-
-               if(apiKey != "NO_API_KEY") {
-                   apiController.post(path, JSONObject()) { response ->
-                       queryAndSetWorklogsView(response)
-                   }
-               } else {
-
-                   val worklogView: View = layoutInflater.inflate(R.layout.worklog_list_item, worklog_scrollview, false)
-
-                   worklogView.technican_field.text = "Status:"
-                   worklogView.date_field.text = SimpleDateFormat("MM/dd/yyyy hh:mm a").format(Date())
-                   worklogView.worklog_field.text = "No API Key set, go to settings and set the API Key from ServiceDesk."
-
-                   worklog_scrollview.addView(worklogView)
-               }
-
-
-
+               hideKeyboard()
+               setWorklogInputVisible(false)
+               requestWorklogAndFillList(prefs, apiController)
                true
            } else
                false
         }
 
         worklog_submit_button.setOnClickListener{
+            hideKeyboard()
             submitWorklog(worklog_input_field.text.toString(), prefs, apiController)
         }
+
+        // Sets the edittexts to be done when you hit enter.
+        request_input_field.imeOptions = EditorInfo.IME_ACTION_GO
+        worklog_input_field.imeOptions = EditorInfo.IME_ACTION_GO
+
+        // Hide the worklog submit stuff til we actually need it
+        setWorklogInputVisible(false)
 
     }
 
@@ -149,11 +102,61 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    fun setWorklogInputVisible(visible:Boolean) {
+        when(visible) {
+            true -> {
+                worklog_input_field.visibility = View.VISIBLE
+                worklog_submit_button.visibility = View.VISIBLE
+            }
+
+            false -> {
+                worklog_input_field.visibility = View.GONE
+                worklog_submit_button.visibility = View.GONE
+            }
+        }
+    }
+
+
+    /**
+     * requestWorklogAndFillList(prefs, apiController)
+     *  prefs: SharedPreferences - System shared prefs to retrieve API Key for the given user
+     *  apiController: APIController - APIController to send post requests
+     *
+     * Clears the worklog scrollview and sets it to the worklogs for the given request
+     *
+     */
+    fun requestWorklogAndFillList(prefs: SharedPreferences, apiController: APIController) {
+
+        Log.d(LOG_TAG, "requestWorklogAndFillList() ")
+
+        // Clear the scrollview
+        if (worklog_scrollview.childCount > 0)
+            worklog_scrollview.removeAllViews()
+
+        // Create the loading icon and add to the scroll view
+        val loadingView: View = layoutInflater.inflate(R.layout.worklog_loading_item, worklog_scrollview, false)
+        loadingView.visibility = View.VISIBLE
+        worklog_scrollview.addView(loadingView)
+
+        // Grab the API Key and set the path to request the worklogs
+        val apiKey = prefs.getString("api_key", "NO_API_KEY")
+        val path = requestWorklogAllPath(Integer.parseInt(request_input_field.text.toString()), apiKey)
+
+        if(apiKey != "NO_API_KEY") {
+            apiController.post(path, JSONObject()) { response ->
+                queryAndSetWorklogsView(response)
+            }
+        } else {
+            addErrorScrollview("No API Key set, go to settings and set the API Key from ServiceDesk.", true)
+        }
+    }
+
     fun submitWorklog(worklogString:String, prefs:SharedPreferences, apiController: APIController) {
 
+        // Grab the APIKey
         val apiKey = prefs.getString("api_key", "NO_API_KEY")
 
-        // Lord is that dumb
+        // Create worklog JSON File to submit
         val inputData = JSONObject()
         val operationObj = inputData.put("operation", JSONObject()).getJSONObject("operation")
         val detailsObj = operationObj.put("details", JSONObject()).getJSONObject("details")
@@ -177,7 +180,6 @@ class MainActivity : AppCompatActivity() {
                 // Clear the worklog input
                 worklog_input_field.text.clear()
 
-
                 // Refresh Path
                 val path = requestWorklogAllPath(Integer.parseInt(request_input_field.text.toString()), apiKey)
 
@@ -194,11 +196,26 @@ class MainActivity : AppCompatActivity() {
         inputManager.hideSoftInputFromWindow(this.currentFocus.windowToken, InputMethodManager.HIDE_NOT_ALWAYS)
     }
 
-    fun queryAndSetWorklogsView(response: JSONObject?) {
+    fun addErrorScrollview(errorMessage:String, showRedError: Boolean) {
         if (worklog_scrollview.childCount > 0)
             worklog_scrollview.removeAllViews()
 
-        hideKeyboard()
+        val worklogView: View = layoutInflater.inflate(R.layout.worklog_list_item, worklog_scrollview, false)
+
+        if(showRedError)
+            worklogView.technican_field.text = Html.fromHtml("Status: <font color='#ff4611'> ERROR </font>")
+        else
+            worklogView.technican_field.text = Html.fromHtml("Status:")
+
+        worklogView.date_field.text = SimpleDateFormat("MM/dd/yyyy hh:mm a").format(Date())
+        worklogView.worklog_field.text = "$errorMessage"
+
+        worklog_scrollview.addView(worklogView)
+    }
+
+    fun queryAndSetWorklogsView(response: JSONObject?) {
+        if (worklog_scrollview.childCount > 0)
+            worklog_scrollview.removeAllViews()
 
         Log.d(LOG_TAG, "Got response:\n${response.toString()}")
         val obj =  response?.getJSONObject("operation")
@@ -211,12 +228,19 @@ class MainActivity : AppCompatActivity() {
 
             // Grab the status of the result
             val status:String = obj.getJSONObject("result").getString("status")
-            Log.d(LOG_TAG, "Status from servicedesk: $status")
+            val message:String = obj.getJSONObject("result").getString("message")
+            Log.d(LOG_TAG, "Status from servicedesk: $status - $message")
 
+            // Check if the request was successful, set error if not
+            if(status == "Failed") {
+                addErrorScrollview(message, true)
+                setWorklogInputVisible(false)
+                return
+            }
 
             // Im lazy so this works for now
             try {
-                val details:JSONArray? = obj.getJSONArray("Details")
+                val details:JSONArray? = obj.optJSONArray("Details")
 
                 // Check if the request actually has worklogs
                 if(details != null) {
@@ -230,53 +254,38 @@ class MainActivity : AppCompatActivity() {
                         val worklogView: View = layoutInflater.inflate(R.layout.worklog_list_item, worklog_scrollview, false)
                         val worklogObj:JSONObject = details.getJSONObject(worklogIndex)
 
-                        // Set the technician name
-//                        Log.d(LOG_TAG, "technician: ${worklogObj.getString("technician")}")
+                        // Set the worklog object to the values returned from ServiceDesk
                         worklogView.technican_field.text = worklogObj.getString("technician")
-
-                        // Set the date (ex. 01/23/2019 12:34 PM)
                         val niceDate = SimpleDateFormat("MM/dd/yyyy hh:mm a").format(Date(worklogObj.getString("dateTime").toLong()))
-//                        Log.d(LOG_TAG, "dateTime: $niceDate")
                         worklogView.date_field.text = niceDate
-
-                        // Set the actual worklog
-//                        Log.d(LOG_TAG, "worklog: ${worklogObj.getString("description")}")
                         worklogView.worklog_field.text = worklogObj.getString("description")
 
                         // Grab a reference to
                         worklog_scrollview.addView(worklogView)
                     }
+
+                    // Scroll the scrollview to the newest
+                    if(prefs.getBoolean("newestOrder", true)) {
+                        worklog_scrollview_parent.fullScroll(View.FOCUS_UP)
+                    } else {
+                        worklog_scrollview_parent.fullScroll(View.FOCUS_DOWN)
+                    }
+
+                    setWorklogInputVisible(true)
+
                 } else {
-                    // Create a worklog view and get the object from the array of stuff
-                    val worklogView: View = layoutInflater.inflate(R.layout.worklog_list_item, worklog_scrollview, false)
-
-                    worklogView.technican_field.text = "Status:"
-                    worklogView.date_field.text = SimpleDateFormat("MM/dd/yyyy hh:mm a").format(Date())
-                    worklogView.worklog_field.text = "Status has no worklogs."
-
-                    worklog_scrollview.addView(worklogView)
+                    addErrorScrollview("Request has no worklogs", false)
+                    setWorklogInputVisible(false)
                 }
 
             } catch ( e: Exception) {
-                Toast.makeText(this, "Request failed with exception: ${e}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Request failed with exception: ${e}", Toast.LENGTH_LONG).show()
+                setWorklogInputVisible(false)
             }
 
-
-
-
-
         } else {
-            if (worklog_scrollview.childCount > 0)
-                worklog_scrollview.removeAllViews()
-
-            // Create a worklog view and get the object from the array of stuff
-            val worklogView: View = layoutInflater.inflate(R.layout.worklog_list_item, worklog_scrollview, false)
-
-            worklogView.technican_field.text = "Status:"
-            worklogView.date_field.text = SimpleDateFormat("MM/dd/yyyy hh:mm a").format(Date())
-            worklogView.worklog_field.text = "Error while retrieving worklogs"
-
-            worklog_scrollview.addView(worklogView)
+            addErrorScrollview("Error while retieving worklogs", true)
+            setWorklogInputVisible(false)
         }
     }
 

@@ -18,7 +18,8 @@
                 android:id="@+id/date_field"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:layout_width="wrap_content" android:text="Date goes here" android:textStyle="italic" style="@style/DefaultDarkTheme"/>
+                android:layout_width="wrap_content" android:text="Date goes here" android:textStyle="italic"
+                style="@style/DefaultDarkTheme" android:textAlignment="textEnd"/>
     </TableRow>
     <!--<View-->
             <!--android:layout_width="match_parent"-->
